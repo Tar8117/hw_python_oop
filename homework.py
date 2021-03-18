@@ -1,5 +1,6 @@
 import datetime as dt
-DATE_VAR = "%d.%m.%Y"
+
+DATE_FORMAT = "%d.%m.%Y"
 
 
 class Record:
@@ -9,7 +10,7 @@ class Record:
         if date is None:
             self.date = dt.date.today()
         else:
-            self.date = dt.datetime.strptime(date, DATE_VAR).date()
+            self.date = dt.datetime.strptime(date, DATE_FORMAT).date()
 
 
 class Calculator:
@@ -31,13 +32,13 @@ class Calculator:
         return sum(record.amount for record in self.records
                    if week_ago_date <= record.date <= current_date)
 
-    def remained(self):
+    def get_remained(self):
         return self.limit - self.get_today_stats()
 
 
 class CaloriesCalculator(Calculator):
     def get_calories_remained(self):
-        allowed_calories = self.remained()
+        allowed_calories = self.get_remained()
         if allowed_calories > 0:
             return ("Сегодня можно съесть что-нибудь ещё, "
                     "но с общей калорийностью не более "
@@ -51,7 +52,7 @@ class CashCalculator(Calculator):
     EURO_RATE = 87.45
 
     def get_today_cash_remained(self, currency):
-        remained_cash = self.remained()
+        remained_cash = self.get_remained()
         if remained_cash == 0:
             return "Денег нет, держись"
         cur_info = {
@@ -61,10 +62,10 @@ class CashCalculator(Calculator):
         }
         if currency not in cur_info:
             raise ValueError("Валюта не поддерживается")
-        cur_rate, currency = cur_info[currency]
+        cur_rate, cur_name = cur_info[currency]
         rounding = round(remained_cash / cur_rate, 2)
         if remained_cash > 0:
-            return f"На сегодня осталось {rounding} {currency}"
-        dept = abs(rounding)
-        return (f"Денег нет, держись: твой долг - "
-                f"{dept} {currency}")
+            return f"На сегодня осталось {rounding} {cur_name}"
+        debt = abs(rounding)
+        return ("Денег нет, держись: твой долг - "
+                f"{debt} {cur_name}")
